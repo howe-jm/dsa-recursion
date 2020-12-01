@@ -99,6 +99,21 @@ console.log(fibonacci(7));
 
 //7. Factorial
 
+function factorial(num1, count = 1, seq = []) {
+  if (num1 === 1) {
+    return 1;
+  }
+  if (num1 === count) {
+    seq.push(count);
+    return seq.reduce((a, b) => a * b);
+  }
+  seq.push(count);
+  count++;
+  return nthTriangularNumber(num1, count, seq);
+}
+
+console.log(factorial(5));
+
 //8. Find a way out of the maze
 
 //9. Find ALL the ways out of the maze
