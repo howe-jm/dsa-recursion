@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 //1. Counting Sheep
 function countSheep(num) {
   console.log(num + ': Another sheep jumps over the fence');
@@ -109,14 +110,126 @@ function factorial(num1, count = 1, seq = []) {
   }
   seq.push(count);
   count++;
-  return nthTriangularNumber(num1, count, seq);
+  return factorial(num1, count, seq);
 }
 
 console.log(factorial(5));
 
 //8. Find a way out of the maze
 
+// let smallMaze = [
+//   [' ', ' ', ' '],
+//   [' ', '*', ' '],
+//   [' ', ' ', 'e'],
+// ];
+
+let maze = [
+  [' ', ' ', ' ', '*', ' ', ' ', ' '],
+  ['*', '*', ' ', '*', ' ', '*', ' '],
+  [' ', ' ', ' ', ' ', ' ', ' ', ' '],
+  [' ', '*', '*', '*', '*', '*', ' '],
+  [' ', ' ', ' ', ' ', ' ', ' ', 'e'],
+];
+
+function mazeNavigation(maze, pos = [0, 0], directions = '') {
+  let y = pos[0];
+  let x = pos[1];
+
+  if (maze[y][x + 1] === 'e') {
+    directions = directions + 'R';
+    return `Directions: ${directions}`;
+  }
+
+  if (maze[y + 1][x] === 'e') {
+    directions = directions + 'D';
+    return `Directions: ${directions}`;
+  }
+
+  if (maze[y][x + 1] && maze[y][x + 1] !== '*' && maze[y][x + 1] !== 'e') {
+    directions = directions + 'R';
+    return mazeNavigation(maze, (pos = [y, x + 1]), directions);
+  }
+
+  if (maze[y + 1][x] && maze[y + 1][x] !== '*' && maze[y + 1][x] !== 'e') {
+    directions = directions + 'D';
+    return mazeNavigation(maze, (pos = [y + 1, x]), directions);
+  }
+}
+
+console.log(mazeNavigation(maze));
+
 //9. Find ALL the ways out of the maze
+
+function mazeNavigationAll(maze, pos = [0, 0], count = 0, directions = '', paths = []) {
+  let y = pos[0];
+  let x = pos[1];
+
+  if ((maze[y][x + 1] && maze[y][x + 1] !== '*' && maze[y][x + 1] !== 1) || maze[y][x + 1] === 'e') {
+    directions = directions + 'R';
+    if (maze[y][x + 1] === 'e') {
+      paths.push(directions);
+      mazeNavigationAll(maze, [0, 0], count++, (directions = ''), paths);
+    }
+    maze[y][x + 1] = 1;
+    return mazeNavigationAll(maze, [y, x + 1], directions, paths);
+  }
+
+  if ((maze[y][x - 1] && maze[y][x - 1] !== '*' && maze[y][x - 1] !== 1) || maze[y][x - 1] === 'e') {
+    directions = directions + 'L';
+    if (maze[y][x - 1] === 'e') {
+      paths.push(directions);
+      mazeNavigationAll(maze, (pos = [0, 0]), count++, (directions = ''), paths);
+    }
+    maze[y][x - 1] = 1;
+    return mazeNavigationAll(maze, [y, x - 1], directions, paths);
+  }
+
+  if ((maze[y + 1][x] && maze[y + 1][x] !== '*' && maze[y + 1][x] !== 1) || maze[y + 1][x] === 'e') {
+    directions = directions + 'D';
+    if (maze[y + 1][x] === 'e') {
+      paths.push(directions);
+      mazeNavigationAll(maze, (pos = [0, 0]), count++, (directions = ''), paths);
+    }
+    maze[y + 1][x] = 1;
+    return mazeNavigationAll(maze, [y + 1, x], directions, paths);
+  }
+
+  if ((maze[y - 1][x] && maze[y - 1][x] !== '*' && maze[y - 1][x] !== 1) || maze[y - 1][x] === 'e') {
+    directions = directions + 'U';
+    if (maze[y + 1][x] === 'e') {
+      paths.push(directions);
+      mazeNavigationAll(maze, (pos = [0, 0]), count++, (directions = ''), paths);
+    }
+    maze[y - 1][x] = 1;
+    return mazeNavigationAll(maze, [y - 1, x], directions, paths);
+  }
+
+  if ((maze[y][x + 1] && maze[y][x + 1] !== '*') || maze[y][x + 1] === 'e') {
+    directions = directions + 'R';
+    maze[y][x + 1] = 1;
+    return mazeNavigationAll(maze, [y, x + 1], directions, paths);
+  }
+
+  if ((maze[y][x - 1] && maze[y][x - 1] !== '*') || maze[y][x - 1] === 'e') {
+    directions = directions + 'L';
+    maze[y][x - 1] = 1;
+    return mazeNavigationAll(maze, [y, x - 1], directions, paths);
+  }
+
+  if ((maze[y + 1][x] && maze[y + 1][x] !== '*') || maze[y + 1][x] === 'e') {
+    directions = directions + 'D';
+    maze[y + 1][x] = 1;
+    return mazeNavigationAll(maze, [y + 1, x], directions, paths);
+  }
+
+  if ((maze[y - 1][x] && maze[y - 1][x] !== '*') || maze[y - 1][x] === 'e') {
+    directions = directions + 'U';
+    maze[y - 1][x] = 1;
+    return mazeNavigationAll(maze, [y - 1, x], directions, paths);
+  }
+}
+
+console.log(mazeNavigationAll(maze));
 
 //10. Anagrams
 
