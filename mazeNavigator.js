@@ -1,6 +1,4 @@
-/* eslint-disable indent */
 /* eslint-disable no-console */
-
 let maze = [
   [' ', ' ', ' ', '*', ' ', ' ', ' '],
   ['*', '*', ' ', '*', ' ', '*', ' '],
@@ -9,215 +7,63 @@ let maze = [
   [' ', ' ', ' ', ' ', ' ', ' ', 'e'],
 ];
 
-function mazeNavigator(maze, newPath = false, pos = [0, 0], route = [], successfulRoutes = []) {
+function mazeNavigator(maze, attempts, pos = [0, 0], route = new Array(), successfulRoutes = new Array(), counter = 0) {
   let x = pos[0];
   let y = pos[1];
-  // console.log('Current Route: ' + route)
-  // console.log('Successful Routes: ' + successfulRoutes)
-  console.log('Current Pos: ' + x + y + maze[y][x]);
-  // console.log('Last dir: ' + route[route.length - 1])
-  // console.log(maze[y])
 
-  let choices = 0;
-
-  if (x !== 0 && maze[y][x - 1] !== '*' && maze[y][x] !== 'L') {
-    choices++;
-  }
-  if (y !== 0 && maze[y - 1][x] !== '*' && maze[y][x] !== 'U') {
-    choices++;
-  }
-  if (x !== maze[y].length - 1 && maze[y][x + 1] !== '*' && maze[y][x] !== 'R') {
-    choices++;
-  }
-  if (y !== maze.length - 1 && maze[y + 1][x] !== '*' && maze[y][x] !== 'D') {
-    choices++;
+  if (maze[y][x] === 'e') {
+    if (successfulRoutes.includes(route.join(''))) {
+      console.log('Repeate route!');
+    } else {
+      console.log('Unique route found!');
+      successfulRoutes.push(route.join(''));
+      route = [];
+    }
+    counter++;
+    return mazeNavigator(maze, attempts, (pos = [0, 0]), (route = []), successfulRoutes, counter);
   }
 
-  console.log(choices);
+  while (counter < attempts) {
+    let choices = {};
+    if (x !== 0 && maze[y][x - 1] !== '*' && maze[y][x - 1][1] !== counter) {
+      choices.left = { pos: [x - 1, y], direction: 'L', value: maze[y][x - 1] };
+    }
+    if (y !== 0 && maze[y - 1][x] !== '*' && maze[y - 1][x][1] !== counter) {
+      choices.up = { pos: [x, y - 1], direction: 'U', value: maze[y - 1][x] };
+    }
+    if (x !== maze[y].length - 1 && maze[y][x + 1] !== '*' && maze[y][x + 1][1] !== counter) {
+      choices.right = { pos: [x + 1, y], direction: 'R', value: maze[y][x + 1] };
+    }
+    if (y !== maze.length - 1 && maze[y + 1][x] !== '*' && maze[y + 1][x][1] !== counter) {
+      choices.down = { pos: [x, y + 1], direction: 'D', value: maze[y + 1][x] };
+    }
 
-  function resetMaze() {
-    maze.map((x) => {
-      if (x.indexOf('s') !== -1) {
-        console.log('Resetting stuck spots.');
-        x[x.indexOf('s')] = ' ';
-      }
-    });
-  }
+    let numChoices = Object.keys(choices).length;
 
-  let incomplete = maze.map((a) => a.includes(' '));
-  console.log(incomplete.includes(true));
+    if (numChoices === 1) {
+      maze[y][x] = [choices[Object.keys(choices)[0]].direction, counter];
+      pos = choices[Object.keys(choices)[0]].pos;
+      route.push(choices[Object.keys(choices)[0]].direction);
+      return mazeNavigator(maze, attempts, pos, route, successfulRoutes, counter);
+    }
 
-  // Boundary detection
-  if (x !== 0 && maze[y][x - 1] !== '*') {
-    if (maze[y][x - 1] === 'e' && newPath === true) {
-      maze[y][x] = 'L';
-      route.push('Left');
-      console.log(`Maze completed with new route: ${route}`);
-      successfulRoutes.push(route);
-      resetMaze();
-      return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-    } else if (maze[y][x - 1] === 'e' && newPath === false) {
-      if (incomplete.includes(true)) {
-        console.log('Bad route, but unexplored areas left.');
-        maze[y][x] = 'L';
-        return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-      } else {
-        console.log('Maze completed with no new routes.');
-        return successfulRoutes;
-      }
-    } else if (maze[y][x - 1] === ' ' && route[route.length - 1] !== 'Right') {
-      maze[y][x] = 'L';
-      console.log('Left, New Route');
-      route.push('Left');
-      newPath = true;
-      return mazeNavigator(maze, newPath, (pos = [x - 1, y]), route, successfulRoutes);
+    if (numChoices > 1) {
+      const randomDir = Math.floor(Math.random() * numChoices);
+      maze[y][x] = [choices[Object.keys(choices)[randomDir]].direction, counter];
+      pos = choices[Object.keys(choices)[randomDir]].pos;
+      route.push(choices[Object.keys(choices)[randomDir]].direction);
+      return mazeNavigator(maze, attempts, pos, route, successfulRoutes, counter);
+    }
+
+    if (numChoices === 0) {
+      console.log('Oops, got stuck!');
+      counter++;
+      return mazeNavigator(maze, attempts, (pos = [0, 0]), (route = []), successfulRoutes, counter);
     }
   }
 
-  if (y !== 0 && maze[y - 1][x] !== '*') {
-    if (maze[y - 1][x] === 'e' && newPath === true) {
-      maze[y][x] = 'U';
-      route.push('Up');
-      console.log(`Maze completed with new route: ${route}`);
-      successfulRoutes.push(route);
-      resetMaze();
-      return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-    } else if (maze[y - 1][x] === 'e' && newPath === false) {
-      if (incomplete.includes(true)) {
-        console.log('Bad route, but unexplored areas left.');
-        maze[y][x] = 'U';
-        return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-      } else {
-        console.log('Maze completed with no new routes.');
-        return successfulRoutes;
-      }
-    } else if (maze[y - 1][x] === ' ' && route[route.length - 1] !== 'Down') {
-      maze[y][x] = 'U';
-      console.log('Up, New Route');
-      route.push('Up');
-      newPath = true;
-      return mazeNavigator(maze, newPath, (pos = [x, y - 1]), route, successfulRoutes);
-    }
-  }
-
-  if (x !== maze[y].length - 1 && maze[y][x + 1] !== '*') {
-    if (maze[y][x + 1] === 'e' && newPath === true) {
-      maze[y][x] = 'R';
-      route.push('Right');
-      console.log(`Maze completed with new route: ${route}`);
-      successfulRoutes.push(route);
-      resetMaze();
-      return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-    } else if (maze[y][x + 1] === 'e' && newPath === false) {
-      if (incomplete.includes(true)) {
-        console.log('Bad route, but unexplored areas left.');
-        maze[y][x] = 'R';
-        return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-      } else {
-        console.log('Maze completed with no new routes.');
-        return successfulRoutes;
-      }
-    } else if (maze[y][x + 1] === ' ' && route[route.length - 1] !== 'Left') {
-      maze[y][x] = 'R';
-      console.log('Right, New Route');
-      route.push('Right');
-      newPath = true;
-      return mazeNavigator(maze, newPath, (pos = [x + 1, y]), route, successfulRoutes);
-    }
-  }
-
-  if (y !== maze.length - 1 && maze[y + 1][x] !== '*') {
-    if (maze[y + 1][x] === 'e' && newPath === true) {
-      maze[y][x] = 'D';
-      route.push('Down');
-      console.log(`Maze completed with new route: ${route}`);
-      successfulRoutes.push(route);
-      resetMaze();
-      return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-    } else if (maze[y + 1][x] === 'e' && newPath === false) {
-      if (incomplete.includes(true)) {
-        console.log('Bad route, but unexplored areas left.');
-        maze[y][x] = 'D';
-        return mazeNavigator(maze, (newPath = false), (pos = [0, 0]), (route = []), successfulRoutes);
-      } else {
-        console.log('Maze completed with no new routes.');
-        return successfulRoutes;
-      }
-    } else if (maze[y + 1][x] === ' ' && route[route.length - 1] !== 'Up') {
-      maze[y][x] = 'D';
-      console.log('Down, New Route');
-      route.push('Down');
-      newPath = true;
-      return mazeNavigator(maze, newPath, (pos = [x, y + 1]), route, successfulRoutes);
-    }
-  }
-
-  if (newPath === true && choices === 0) {
-    console.log('Stuck!');
-    switch (route[route.length - 1]) {
-      case 'Left': {
-        maze[y][x] = 's';
-        route.pop();
-        return mazeNavigator(maze, newPath, (pos = [x + 1, y]), route, successfulRoutes);
-      }
-      case 'Right': {
-        maze[y][x] = 's';
-        route.pop();
-        return mazeNavigator(maze, newPath, (pos = [x - 1, y]), route, successfulRoutes);
-      }
-      case 'Up': {
-        maze[y][x] = 's';
-        route.pop();
-        return mazeNavigator(maze, newPath, (pos = [x, y + 1]), route, successfulRoutes);
-      }
-      case 'Down': {
-        maze[y][x] = 's';
-        route.pop();
-        return mazeNavigator(maze, newPath, (pos = [x, y - 1]), route, successfulRoutes);
-      }
-      default: {
-        break;
-      }
-    }
-  } else {
-    if (x !== 0 && maze[y][x - 1] !== '*') {
-      if (route[route.length - 1] !== 'Right' && (maze[y][x] !== 'L' || choices < 2)) {
-        console.log('Left, Not New Route');
-        maze[y][x] = 'L';
-        route.push('Left');
-        return mazeNavigator(maze, newPath, (pos = [x - 1, y]), route, successfulRoutes);
-      }
-    }
-
-    if (y !== 0 && maze[y - 1][x] !== '*') {
-      if (route[route.length - 1] !== 'Down' && (maze[y][x] !== 'U' || choices < 2)) {
-        console.log('Up, Not New Route');
-        maze[y][x] = 'U';
-        route.push('Up');
-        return mazeNavigator(maze, newPath, (pos = [x, y - 1]), route, successfulRoutes);
-      }
-    }
-
-    if (x !== maze[y].length - 1 && maze[y][x + 1] !== '*') {
-      if (route[route.length - 1] !== 'Left' && (maze[y][x] !== 'R' || choices < 2)) {
-        console.log('Right, Not New Route');
-        maze[y][x] = 'R';
-        route.push('Right');
-        return mazeNavigator(maze, newPath, (pos = [x + 1, y]), route, successfulRoutes);
-      }
-    }
-
-    if (y !== maze.length - 1 && maze[y + 1][x] !== '*') {
-      if (route[route.length - 1] !== 'Up' && (maze[y][x] !== 'D' || choices < 2)) {
-        console.log('Down, Not New Route');
-        maze[y][x] = 'D';
-        route.push('Down');
-        return mazeNavigator(maze, newPath, (pos = [x, y + 1]), route, successfulRoutes);
-      }
-    }
-  }
-
-  return successfulRoutes;
+  return `Unique routes: ${successfulRoutes.join(', ')}`;
 }
 
-console.log(mazeNavigator(maze));
+// Function mazeNavigator will attempt to solve any (solvable) maze
+console.log(mazeNavigator(maze, 25));
